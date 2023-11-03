@@ -20,7 +20,7 @@ def get_yesterday_unix_timestamp() -> int:
     """Get yesterday's Unix timestamp in milliseconds."""
 
     today = datetime.now()
-    yesterday = today - timedelta(days=1)
+    yesterday = today - timedelta(hours=2)
     return int(yesterday.timestamp()) * 1000
 
 
