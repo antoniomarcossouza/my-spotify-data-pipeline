@@ -1,6 +1,5 @@
 """Lambda function to get recently played songs from Spotify API."""
 import pandas as pd
-from sqlalchemy import create_engine
 
 from exceptions import (
     EmptyDataFrameException,
@@ -78,3 +77,5 @@ if __name__ == "__main__":
     recently_played = extract()
 
     transformed_data = transform(df=recently_played)
+
+    transformed_data.to_csv("./played_tracks.csv", mode="a", index=False)
