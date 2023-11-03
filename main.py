@@ -1,4 +1,7 @@
 """Lambda function to get recently played songs from Spotify API."""
+import os
+import sys
+
 import pandas as pd
 
 from exceptions import (
@@ -73,9 +76,23 @@ def transform(df: pd.core.frame.DataFrame) -> pd.core.frame.DataFrame:
     return df
 
 
-if __name__ == "__main__":
+def run_etl():
+    """Run the ETL process."""
+
     recently_played = extract()
 
     transformed_data = transform(df=recently_played)
 
-    transformed_data.to_csv("./played_tracks.csv", mode="a", index=False)
+    file_path = "./played_tracks.csv"
+
+    if not os.path.isfile(file_path):
+        transformed_data.to_csv(file_path, index=False)
+        sys.exit()
+    transformed_data.to_csv(file_path, mode="a", index=False, header=False)
+
+    df = pd.read_csv(file_path).drop_duplicates()
+    df.to_csv(file_path, mode="w", index=False)
+
+
+if __name__ == "__main__":
+    run_etl()
