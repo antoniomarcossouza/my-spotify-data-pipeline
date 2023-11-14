@@ -5,6 +5,9 @@ from io import StringIO
 import os
 from datetime import datetime, timedelta
 
+# Only for local development
+# from dotenv import load_dotenv
+
 import boto3
 import pandas as pd
 import requests
@@ -15,6 +18,9 @@ from exceptions import (
     NonUniquePrimaryKeyException,
     NullValuesFoundException,
 )
+
+# Only for local development
+# load_dotenv()
 
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
@@ -95,6 +101,7 @@ def extract() -> pd.core.frame.DataFrame:
     songs = []
     durations_ms = []
     albums = []
+    release_dates = []
     artists = []
     artists_ids = []
     date = []
@@ -104,6 +111,7 @@ def extract() -> pd.core.frame.DataFrame:
         songs.append(song["track"]["name"])
         durations_ms.append(song["track"]["duration_ms"])
         albums.append(song["track"]["album"]["name"])
+        release_dates.append(song["track"]["album"]["release_date"])
         artists.append(song["track"]["artists"][0]["name"])
         artists_ids.append(song["track"]["artists"][0]["id"])
         date.append(song["played_at"][0:10])
@@ -114,6 +122,7 @@ def extract() -> pd.core.frame.DataFrame:
             "song_name": songs,
             "duration_ms": durations_ms,
             "album_name": albums,
+            "release_date": release_dates,
             "artist_name": artists,
             "artist_id": artists_ids,
             "played_at": played_at,
