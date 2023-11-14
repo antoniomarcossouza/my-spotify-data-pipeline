@@ -167,8 +167,6 @@ def run_etl():
     recently_played = extract()
     transformed_data = transform(df=recently_played)
 
-    transformed_data.to_csv("data.csv", index=False)
-
     save_to_s3(
         df=transformed_data,
         bucket="my-spotify-stats",
