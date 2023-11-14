@@ -2,5 +2,5 @@
 
 from spotify_etl import run_etl
 
-if __name__ == "__main__":
+def lambda_handler(event, context):
     run_etl()
