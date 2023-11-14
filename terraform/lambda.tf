@@ -17,9 +17,9 @@ resource "aws_lambda_function" "my_spotify_stats" {
 
   environment {
     variables = {
-      CLIENT_ID     = var.SPOTIFY_CLIENT_ID
-      CLIENT_SECRET = var.SPOTIFY_CLIENT_SECRET
-      REFRESH_TOKEN = var.SPOTIFY_REFRESH_TOKEN
+      CLIENT_ID     = local.envs["CLIENT_ID"]
+      CLIENT_SECRET = local.envs["CLIENT_SECRET"]
+      REFRESH_TOKEN = local.envs["REFRESH_TOKEN"]
     }
   }
 }

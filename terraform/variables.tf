@@ -1,21 +1,5 @@
-variable "SPOTIFY_CLIENT_ID" {
-  type = string
-}
-
-variable "SPOTIFY_CLIENT_SECRET" {
-  type = string
-}
-
-variable "SPOTIFY_REFRESH_TOKEN" {
-  type = string
-}
-
-variable "AWS_ACCESS_KEY" {
-  type = string
-}
-
-variable "AWS_SECRET_KEY" {
-  type = string
+locals {
+  envs = { for tuple in regexall("(.*)=(.*)", file("../.env")) : tuple[0] => sensitive(tuple[1]) }
 }
 
 variable "region" {
