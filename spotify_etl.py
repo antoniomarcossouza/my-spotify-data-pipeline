@@ -1,11 +1,11 @@
 """Module with functions used to extract data from the Spotify API."""
 
 import base64
+from io import StringIO
 import os
-import sys
 from datetime import datetime, timedelta
 
-from dotenv import load_dotenv
+import boto3
 import pandas as pd
 import requests
 
@@ -15,8 +15,6 @@ from exceptions import (
     NonUniquePrimaryKeyException,
     NullValuesFoundException,
 )
-
-load_dotenv()
 
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
@@ -68,7 +66,7 @@ def get_recently_played(token: str) -> dict:
             "Content-Type": "application/json",
             "Authorization": f"Bearer {token}",
         },
-        params={"limit": 50, "after": get_yesterday_unix_timestamp()},
+        params={"limit": 50, "after": get_past_timestamp()},
         timeout=60,
     )
 
@@ -156,19 +154,23 @@ def transform(df: pd.core.frame.DataFrame) -> pd.core.frame.DataFrame:
     return df
 
 
+def save_to_s3(df: pd.core.frame.DataFrame, bucket: str, filename: str):
+    """Save DataFrame to S3 bucket."""
+
+    csv_buffer = StringIO()
+    df.to_csv(csv_buffer)
+    s3_resource = boto3.resource("s3")
+    s3_resource.Object(bucket, filename).put(Body=csv_buffer.getvalue())
+
+
 def run_etl():
     """Run the ETL process."""
 
     recently_played = extract()
-
     transformed_data = transform(df=recently_played)
 
-    file_path = "./played_tracks.csv"
-
-    if not os.path.isfile(file_path):
-        transformed_data.to_csv(file_path, index=False)
-        sys.exit()
-    transformed_data.to_csv(file_path, mode="a", index=False, header=False)
-
-    df = pd.read_csv(file_path).drop_duplicates()
-    df.to_csv(file_path, mode="w", index=False)
+    save_to_s3(
+        df=transformed_data,
+        bucket="my-spotify-stats",
+        filename=f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_played_tracks.csv",
+    )
