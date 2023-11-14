@@ -52,10 +52,7 @@ def get_token() -> str:
     return response.json()["access_token"]
 
 
-TOKEN = get_token()
-
-
-def get_recently_played(token: str) -> dict:
+def get_recently_played() -> dict:
     """Get recently played tracks."""
 
     url = "https://api.spotify.com/v1/me/player/recently-played"
@@ -64,7 +61,7 @@ def get_recently_played(token: str) -> dict:
         headers={
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {token}",
+            "Authorization": f"Bearer {get_token()}",
         },
         params={"limit": 50, "after": get_past_timestamp()},
         timeout=60,
@@ -76,13 +73,13 @@ def get_recently_played(token: str) -> dict:
     return response.json()
 
 
-def get_artists_genres(artist_id: str, token: str) -> list:
+def get_artists_genres(artist_id: str) -> list:
     """Get artists genres"""
 
     url = f"https://api.spotify.com/v1/artists/{artist_id}"
     response = requests.get(
         url,
-        headers={"Authorization": f"Bearer {token}"},
+        headers={"Authorization": f"Bearer {get_token()}"},
         timeout=60,
     )
 
@@ -96,23 +93,26 @@ def extract() -> pd.core.frame.DataFrame:
     """Extract recently played songs from Spotify API"""
 
     songs = []
+    durations_ms = []
     albums = []
     artists = []
     artists_ids = []
     date = []
     played_at = []
 
-    for song in get_recently_played(token=TOKEN)["items"]:
+    for song in get_recently_played()["items"]:
         songs.append(song["track"]["name"])
+        durations_ms.append(song["track"]["duration_ms"])
         albums.append(song["track"]["album"]["name"])
-        artists.append(song["track"]["album"]["artists"][0]["name"])
-        artists_ids.append(song["track"]["album"]["artists"][0]["id"])
+        artists.append(song["track"]["artists"][0]["name"])
+        artists_ids.append(song["track"]["artists"][0]["id"])
         date.append(song["played_at"][0:10])
         played_at.append(song["played_at"])
 
     return pd.DataFrame(
         {
             "song_name": songs,
+            "duration_ms": durations_ms,
             "album_name": albums,
             "artist_name": artists,
             "artist_id": artists_ids,
@@ -143,9 +143,7 @@ def transform(df: pd.core.frame.DataFrame) -> pd.core.frame.DataFrame:
 
     check_data_integrity(df=df)
 
-    df["genres"] = df["artist_id"].apply(
-        lambda artist_id: get_artists_genres(artist_id, TOKEN)
-    )
+    df["genres"] = df["artist_id"].apply(get_artists_genres)
     df["genres"] = [", ".join(genre) for genre in df["genres"]]
 
     df["genres"] = df["genres"].replace("", None)
@@ -168,6 +166,8 @@ def run_etl():
 
     recently_played = extract()
     transformed_data = transform(df=recently_played)
+
+    transformed_data.to_csv("data.csv", index=False)
 
     save_to_s3(
         df=transformed_data,
