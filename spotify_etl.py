@@ -23,8 +23,8 @@ CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 BASE64_ID_SECRET = base64.b64encode(f"{CLIENT_ID}:{CLIENT_SECRET}".encode()).decode()
 
 
-def get_yesterday_unix_timestamp() -> int:
-    """Get yesterday's Unix timestamp in milliseconds."""
+def get_past_timestamp() -> int:
+    """Get timestamp from 2 hours ago."""
 
     today = datetime.now()
     yesterday = today - timedelta(hours=2)
