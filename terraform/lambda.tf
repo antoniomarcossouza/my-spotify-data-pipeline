@@ -1,3 +1,9 @@
+resource "aws_lambda_layer_version" "requests" {
+  filename            = "../requests.zip"
+  layer_name          = "requests"
+  source_code_hash    = filebase64sha256("../requests.zip")
+  compatible_runtimes = ["python3.11"]
+}
 resource "aws_lambda_function" "my_spotify_stats" {
   filename         = "../lambda.zip"
   function_name    = "my_spotify_stats"
@@ -6,6 +12,8 @@ resource "aws_lambda_function" "my_spotify_stats" {
   source_code_hash = filebase64sha256("../lambda.zip")
   runtime          = "python3.11"
   timeout          = 300
+  layers = ["arn:aws:lambda:us-east-2:336392948345:layer:AWSSDKPandas-Python311:3",
+  "${aws_lambda_layer_version.requests.arn}"]
 
   environment {
     variables = {
