@@ -7,7 +7,7 @@ PKG_DIR="$PROJECT_DIR/python"
 
 # Removing previous files
 
-rm $PROJECT_DIR/*.zip
+rm -rf $PROJECT_DIR/*.zip
 
 # Requests layer
 
